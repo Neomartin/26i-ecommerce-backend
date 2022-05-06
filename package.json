@@ -8,7 +8,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "author": "RollingCode School",
+  "author": "RollingCode School", 
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.1",

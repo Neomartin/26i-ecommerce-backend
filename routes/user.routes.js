@@ -1,35 +1,14 @@
 const express = require('express');
 const api = express.Router();
+const userController = require('../controllers/user.controller')
 
-api.get('/user', (req, res) => {
-    return res.send({ user: {
-        name: "Jose",
-        lastName: "Perez",
-        age: 40,
-        active: true
-    }})
-});
+api.get('/users', userController.getUsers);
 
-api.post('/user', (req, res)=> {
-    return res.status(200).send({
-        message: 'Método POST'
-    })
-})
+api.get('/user', userController.getUser);
 
-api.delete('/user', (req, res)=> {
-    return res.status(200).send({
-        message: 'El usuario será BORRADO'
-    })
-})
-
-api.put('/user', (req, res)=> {
-    return res.status(200).send({
-        message: 'El usuario será ACTUALIZADO'
-    })
-})
-
-api.post('/login', (req,res)=> {
-    return res.send({ message: 'Login de usuario'})
-})
+api.post('/user', userController.createUser)
+api.delete('/user', userController.deleteUser)
+api.put('/user', userController.updateUser)
+api.post('/login', userController.login)
 
 module.exports = api
