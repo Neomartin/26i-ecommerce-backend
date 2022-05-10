@@ -6,7 +6,8 @@ api.get('/users', userController.getUsers);
 
 api.get('/user', userController.getUser);
 
-api.post('/user', userController.createUser)
+api.post('/user', userController.createUser);
+
 api.delete('/user', userController.deleteUser)
 api.put('/user', userController.updateUser)
 api.post('/login', userController.login)
