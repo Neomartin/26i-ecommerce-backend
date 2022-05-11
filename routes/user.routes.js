@@ -5,7 +5,7 @@ const userController = require('../controllers/user.controller')
 api.get('/users', userController.getUsers);
 
 api.get('/user', userController.getUser);
-
+//Para escribir data en el backend se suele enviar con método POST a través del body
 api.post('/user', userController.createUser);
 
 api.delete('/user', userController.deleteUser)
