@@ -4,12 +4,16 @@ const userController = require('../controllers/user.controller')
 
 api.get('/users', userController.getUsers);
 
-api.get('/user', userController.getUser);
-//Para escribir data en el backend se suele enviar con método POST a través del body
-api.post('/user', userController.createUser);
+//Necesito enviar un dato por que necesito traer 1 solo documento (user)
+api.get('/users/:userID', userController.getUser);
 
-api.delete('/user', userController.deleteUser)
-api.put('/user', userController.updateUser)
+
+
+//Para escribir data en el backend se suele enviar con método POST a través del body
+api.post('/users', userController.createUser);
+
+api.delete('/users', userController.deleteUser)
+api.put('/users', userController.updateUser)
 api.post('/login', userController.login)
 
 module.exports = api
