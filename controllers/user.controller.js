@@ -73,10 +73,7 @@ async function createUser(req, res) {
         console.log(`encryptedPassword`, encryptedPassword)
         user.password = encryptedPassword
 
-
         console.log(`Despues`, user)
-
-
 
         const newUser = await user.save();
 
@@ -127,8 +124,33 @@ const updateUser = async(req, res) => {
     })
 }
 
-const login = function (req, res) {
-    return res.send({ message: 'Login de usuario'})
+const login = async function (req, res) {
+    const reqEmail = req.body.email;
+    const reqPassword = req.body.password;
+
+    
+    // 1ro: Buscar en la base de datos de usuarios si el email existe
+    const user = await User.findOne({ email: reqEmail });
+    console.log(`user`, user)
+    // No existe: enviar error e indicar que alguna credencial.
+    if(user == null) {
+        return res.status(404).send({ message: 'No se encontró ningún usuario con ese correo'})
+    }
+
+    // Si existe voy a comparar el password de la base de datos con el password que ingreso la persona en el login
+    // 2do: Comparo el password que viene en el request body con el password que tiene el usuario con el email ingresado
+
+    const checkPassword = await bcrypt.compare(reqPassword, user.password)
+
+    console.log(`Bcrypt compare`, checkPassword)
+
+    if(checkPassword === false) {
+        return res.status(400).send({ message: 'Credenciales incorrectas'})
+    }
+
+            // 2do b: para realizar la comparación de un password hasheado uso la función de bcrypt COMPARE 
+    user.password = undefined;
+    return res.send({ message: 'Login de usuario correcto', user })
 }
 
 module.exports = {
