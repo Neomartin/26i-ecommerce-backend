@@ -2,7 +2,7 @@ const express = require('express');
 const api = express.Router();
 const userController = require('../controllers/user.controller')
 
-api.get('/users', userController.getUsers);
+api.get('/users/:name?', userController.getUsers);
 
 //Necesito enviar un dato por que necesito traer 1 solo documento (user)
 api.get('/users/:userID', userController.getUser);
