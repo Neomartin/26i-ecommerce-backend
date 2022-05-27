@@ -9,6 +9,8 @@ async function getUsers(req, res) {
     let criterioDeBusqueda = {}
     const name = req.params.name   //valordevariable
 
+    const page = req.query.page || 0;
+    const items = req.query.items || 3;
     if(name) {
         criterioDeBusqueda = { fullName: new RegExp(name, 'i')  }
     }
@@ -16,7 +18,24 @@ async function getUsers(req, res) {
     console.log(criterioDeBusqueda)
 
     try {
-        const users = await User.find(criterioDeBusqueda).select({ password: 0, __v: 0});
+        // const users = await User.find( criterioDeBusqueda )
+        // .select({ password: 0, __v: 0})  // indicar a mongo que no devuelva estos campos
+        // .skip(page * items)  // saltear x cantidad de resultados
+        // .limit(3)      // devolver x número de resultados
+
+        // const total = await User.find(criterioDeBusqueda).countDocuments();
+
+         //     [users, total]
+        const resultados = await Promise.all([
+            User.find( criterioDeBusqueda )
+                .select({ password: 0, __v: 0})  // indicar a mongo que no devuelva estos campos
+                .skip(page * items)  // saltear x cantidad de resultados
+                .limit(3),
+            User.find(criterioDeBusqueda).countDocuments()
+        ])
+
+        const users = resultados[0];
+        const total = resultados[1];
 
         if(users.length === 0) {
             return res.status(200).send({
@@ -28,7 +47,8 @@ async function getUsers(req, res) {
         return res.status(200).send({
             ok: true,
             message: `Usuarios obtenidos correctamente`,
-            users: users
+            users: users,
+            total
         })
 
     } catch (error) {
