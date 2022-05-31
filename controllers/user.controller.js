@@ -14,7 +14,7 @@ async function getUsers(req, res) {
     if(name) {
         criterioDeBusqueda = { fullName: new RegExp(name, 'i')  }
     }
-
+    
     console.log(criterioDeBusqueda)
 
     try {
@@ -31,7 +31,10 @@ async function getUsers(req, res) {
             User.find( criterioDeBusqueda )
                 .select({ password: 0, __v: 0})  // indicar a mongo que no devuelva estos campos
                 .skip(page * items)  // saltear x cantidad de resultados
-                .limit(3), // devolver x número de resultados
+                .limit(3) // devolver x número de resultados
+                .collation({ locale: 'es' }) //Para que al ordenar no haga diferencias entre mayusculas y minusculas
+                .sort({ price: -1}) // Valor de la propiedad: 1 Ascendente, -1 Descendente
+                ,
             //elemento 1 del array
             User.find(criterioDeBusqueda).countDocuments()
         ])
