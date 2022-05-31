@@ -24,13 +24,15 @@ async function getUsers(req, res) {
         // .limit(3)      // devolver x número de resultados
 
         // const total = await User.find(criterioDeBusqueda).countDocuments();
-
+        // Se puede destructurar el resultado obtenido desde Promise all [resultado0, resultado1]
          //     [users, total]
         const resultados = await Promise.all([
+            //elemento 0 del array
             User.find( criterioDeBusqueda )
                 .select({ password: 0, __v: 0})  // indicar a mongo que no devuelva estos campos
                 .skip(page * items)  // saltear x cantidad de resultados
-                .limit(3),
+                .limit(3), // devolver x número de resultados
+            //elemento 1 del array
             User.find(criterioDeBusqueda).countDocuments()
         ])
 
