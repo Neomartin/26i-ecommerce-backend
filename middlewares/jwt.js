@@ -7,10 +7,6 @@ const jwtVerify = (req, res, next) => {
 
     const tokenFromRequest = req.headers.authorization;
 
-
-
-
-
     jwt.verify(tokenFromRequest, secretSeed, (err, decoded) => {
         if(err) {
             return res.status(401).send({
