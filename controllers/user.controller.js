@@ -1,18 +1,21 @@
-
 const res = require('express/lib/response');
 const User = require('../schemas/user.schema');
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const secretSeed = require('../config/config').secret;
 const saltRounds = 10;
 
 async function getUsers(req, res) {
     //users
     let criterioDeBusqueda = {}
-    const name = req.params.name   //valordevariable
+    const name = req.params.name //valordevariable
 
     const page = req.query.page || 0;
     const items = req.query.items || 3;
-    if(name) {
-        criterioDeBusqueda = { fullName: new RegExp(name, 'i')  }
+    if (name) {
+        criterioDeBusqueda = {
+            fullName: new RegExp(name, 'i')
+        }
     }
 
     console.log(criterioDeBusqueda)
@@ -25,19 +28,22 @@ async function getUsers(req, res) {
 
         // const total = await User.find(criterioDeBusqueda).countDocuments();
 
-         //     [users, total]
+        //     [users, total]
         const resultados = await Promise.all([
-            User.find( criterioDeBusqueda )
-                .select({ password: 0, __v: 0})  // indicar a mongo que no devuelva estos campos
-                .skip(page * items)  // saltear x cantidad de resultados
-                .limit(3),
+            User.find(criterioDeBusqueda)
+            .select({
+                password: 0,
+                __v: 0
+            }) // indicar a mongo que no devuelva estos campos
+            .skip(page * items) // saltear x cantidad de resultados
+            .limit(3),
             User.find(criterioDeBusqueda).countDocuments()
         ])
 
         const users = resultados[0];
         const total = resultados[1];
 
-        if(users.length === 0) {
+        if (users.length === 0) {
             return res.status(200).send({
                 ok: true,
                 message: `No se encontró ningun usuario`
@@ -53,7 +59,7 @@ async function getUsers(req, res) {
 
     } catch (error) {
         console.log(error)
-        if(error) {
+        if (error) {
             return res.status(500).send({
                 ok: false,
                 message: `Error al obtener usuarios`
@@ -70,17 +76,17 @@ async function getUser(req, res) {
     const id = req.params.userID;
 
     // Hago una búsqueda con el método find en la DB pero mando un objecto como primera propiedad del find en el que especifico la propiedad _id tiene que ser igual al id que recibo params.
-        //    // User.find({ _id: id }, (error, user) => {
-        //    //     console.log(user)
-        //    // })
+    //    // User.find({ _id: id }, (error, user) => {
+    //    //     console.log(user)
+    //    // })
 
     const user = await User.findById(id)
-    if(!user) return res.status(200).send({
+    if (!user) return res.status(200).send({
         ok: false,
         message: `No se encontró ningún usuario con ese id`
     })
 
-    return res.send({ 
+    return res.send({
         ok: true,
         message: 'Usuario encontrado',
         user: user
@@ -97,7 +103,7 @@ async function createUser(req, res) {
         let password = req.body.password;
 
         const encryptedPassword = await bcrypt.hash(password, saltRounds)
-        if(!encryptedPassword) {
+        if (!encryptedPassword) {
             return res.status(500).send({
                 ok: false,
                 message: 'Error al intentar guardar usuario'
@@ -112,7 +118,7 @@ async function createUser(req, res) {
 
         newUser.password = undefined;
 
-        return res.send({ 
+        return res.send({
             message: `Se creara un NUEVO USUARIO`,
             user: newUser
         })
@@ -120,7 +126,7 @@ async function createUser(req, res) {
     } catch (error) {
         console.log('Error');
         let msg = ``
-        if(error.name === 'ValidationError') {
+        if (error.name === 'ValidationError') {
             msg = 'Error en los datos ingresados'
         }
         return res.status(400).send({
@@ -129,7 +135,7 @@ async function createUser(req, res) {
             error
         })
     }
-    
+
 }
 
 async function deleteUser(req, res) {
@@ -145,11 +151,22 @@ async function deleteUser(req, res) {
     })
 }
 
-const updateUser = async(req, res) => {
-    
-    const id = req.query.idToUpdate
+const updateUser = async (req, res) => {
 
-    const newUser = await User.findByIdAndUpdate(id, req.body, { new: true })
+    const id = req.query.idToUpdate
+    //	        true                false
+    if(req.user._id !== id && req.user.role !== 'ADMIN_ROLE') {
+        return res.status(401).send({
+            ok: false,
+            message: `No tiene permisos para modificar este usuario`
+        })
+    }
+
+
+
+    const newUser = await User.findByIdAndUpdate(id, req.body, {
+        new: true
+    })
 
     return res.status(200).send({
         message: 'El usuario fue ACTUALIZADO',
@@ -158,32 +175,57 @@ const updateUser = async(req, res) => {
 }
 
 const login = async function (req, res) {
-    const reqEmail = req.body.email;
-    const reqPassword = req.body.password;
+    try {
+        const reqEmail = req.body.email;
+        const reqPassword = req.body.password;
 
-    
-    // 1ro: Buscar en la base de datos de usuarios si el email existe
-    const user = await User.findOne({ email: reqEmail });
-    console.log(`user`, user)
-    // No existe: enviar error e indicar que alguna credencial.
-    if(user == null) {
-        return res.status(404).send({ message: 'No se encontró ningún usuario con ese correo'})
+
+        // 1ro: Buscar en la base de datos de usuarios si el email existe
+        const user = await User.findOne({
+            email: reqEmail
+        });
+        console.log(`user`, user)
+        // No existe: enviar error e indicar que alguna credencial.
+        if (user == null) {
+            return res.status(404).send({
+                message: 'No se encontró ningún usuario con ese correo'
+            })
+        }
+
+        // Si existe voy a comparar el password de la base de datos con el password que ingreso la persona en el login
+        // 2do: Comparo el password que viene en el request body con el password que tiene el usuario con el email ingresado
+
+        const checkPassword = await bcrypt.compare(reqPassword, user.password)
+
+        console.log(`Bcrypt compare`, checkPassword)
+
+        if (checkPassword === false) {
+            return res.status(400).send({
+                message: 'Credenciales incorrectas'
+            })
+        }
+
+        user.password = undefined;
+
+
+        const token = await jwt.sign(user.toJSON(), secretSeed)
+
+
+        // 2do b: para realizar la comparación de un password hasheado uso la función de bcrypt COMPARE 
+
+        return res.send({
+            message: 'Login de usuario correcto',
+            user,
+            token
+        })
+    } catch (error) {
+        return res.status(500).send({ 
+            ok: false,
+            message: 'Error al intentar loguear usuario'
+        })
     }
 
-    // Si existe voy a comparar el password de la base de datos con el password que ingreso la persona en el login
-    // 2do: Comparo el password que viene en el request body con el password que tiene el usuario con el email ingresado
 
-    const checkPassword = await bcrypt.compare(reqPassword, user.password)
-
-    console.log(`Bcrypt compare`, checkPassword)
-
-    if(checkPassword === false) {
-        return res.status(400).send({ message: 'Credenciales incorrectas'})
-    }
-
-            // 2do b: para realizar la comparación de un password hasheado uso la función de bcrypt COMPARE 
-    user.password = undefined;
-    return res.send({ message: 'Login de usuario correcto', user })
 }
 
 module.exports = {
