@@ -7,16 +7,14 @@ const jwtVerify = (req, res, next) => {
 
     const tokenFromRequest = req.headers.authorization;
 
-    jwt.verify(tokenFromRequest, secretSeed, (err, decoded) => {
+    jwt.verify(tokenFromRequest, secretSeed, (err, userDecoded) => {
         if(err) {
             return res.status(401).send({
                 message: 'Token inválido'
             });
         }
 
-
-        console.log(decoded)
-        req.user = decoded
+        req.user = userDecoded
 
         next();
     })

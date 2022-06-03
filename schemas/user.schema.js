@@ -14,7 +14,8 @@ const UserSchema = new Schema({
     bornDate: { type: Date },
     active: { type: Boolean, required: true, default: false }, //
     role: {type: String, enum: validRoles },
-    age: { type: Number, required: true, min: 12, max: 100 }
+    age: { type: Number, required: true, min: 12, max: 100 },
+    iniciosFallados: { type: Number, required: true, min: 0, max: 10 },
 })
 
 module.exports = mongoose.model('User', UserSchema)

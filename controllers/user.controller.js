@@ -109,10 +109,8 @@ async function createUser(req, res) {
                 message: 'Error al intentar guardar usuario'
             })
         }
-        console.log(`encryptedPassword`, encryptedPassword)
-        user.password = encryptedPassword
 
-        console.log(`Despues`, user)
+        user.password = encryptedPassword
 
         const newUser = await user.save();
 
@@ -184,9 +182,12 @@ const login = async function (req, res) {
         const user = await User.findOne({
             email: reqEmail
         });
+
+
         console.log(`user`, user)
         // No existe: enviar error e indicar que alguna credencial.
         if (user == null) {
+            
             return res.status(404).send({
                 message: 'No se encontró ningún usuario con ese correo'
             })
@@ -200,10 +201,14 @@ const login = async function (req, res) {
         console.log(`Bcrypt compare`, checkPassword)
 
         if (checkPassword === false) {
+            
+            // user.update({ intetosFallidos = user.intetosFallidos + 1 })}) 
+
             return res.status(400).send({
                 message: 'Credenciales incorrectas'
             })
         }
+
 
         user.password = undefined;
 
@@ -219,6 +224,9 @@ const login = async function (req, res) {
             token
         })
     } catch (error) {
+        error.array().map((err) => {
+            console.log(err)
+            return error[err.param] = err.msg});
         return res.status(500).send({ 
             ok: false,
             message: 'Error al intentar loguear usuario'
