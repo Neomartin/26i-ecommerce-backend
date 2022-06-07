@@ -151,7 +151,8 @@ async function deleteUser(req, res) {
 
 const updateUser = async (req, res) => {
 
-    const id = req.query.idToUpdate
+    const id = req.query.idToUpdate;
+
     //	        true                false
     if(req.user._id !== id && req.user.role !== 'ADMIN_ROLE') {
         return res.status(401).send({
@@ -159,6 +160,12 @@ const updateUser = async (req, res) => {
             message: `No tiene permisos para modificar este usuario`
         })
     }
+
+    // Checkeo si viene un password a actualizar y de ser true lo hasheo de la misma forma que lo hacia en el momento de crear un User
+    if(req.body.password) {
+        req.body.password = await bcrypt.hash(req.body.password, saltRounds)
+    }
+    
 
 
 

@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { body } = require('express-validator');
 
 function userLoginValidator() {
     return [
@@ -9,28 +9,8 @@ function userLoginValidator() {
     ]
 }
 
-const validate = (req, res, next) => {
-    const errors = validationResult(req);
 
-    if(errors.isEmpty()) {
-        next()
-    }
-
-    const extractedErrors = errors.array().map(err => {
-        console.log(err);
-        return {
-            [err.param]: err.msg
-        }
-    })
-
-    return res.status(422).send({
-        ok: false,
-        errors: extractedErrors
-    })
-
-}
 
 module.exports = {
     userLoginValidator,
-    validate
 }
