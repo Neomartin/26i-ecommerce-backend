@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const secretSeed = require('../config/config').secret;
+const secretSeed = process.env.SECRET_KEY
 
 const jwtVerify = (req, res, next) => {
     // Esta función va a realizar algún check en este caso del token y si todo sale bien 
